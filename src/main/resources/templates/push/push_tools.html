@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>推送tools</title>
+</head>
+<body>
+
+<script type="text/javascript" src="/jquery/jquery-3.2.1.min.js"></script>
+
+<script type="text/javascript">
+
+    function doSubmit(){
+        var file = document.getElementById('sourceData');
+        if (file.value == "") {
+            alert("请选择您需要上传的文件！");
+        }else{
+            $("#pushFrom").submit();
+        }
+    }
+
+</script>
+<form enctype="multipart/form-data" id="pushFrom" action="/push/index" method="post">
+
+    <table>
+
+        <tr><td>源数据:<input id="sourceData" name="sourceData" type="file"/></td></tr>
+        <tr><td>name:<input name="name" type="text"/></td></tr>
+        <tr><td>a</td></tr>
+        <tr><td>a</td></tr>
+        <tr><td><input type="button" value="提交" onclick="doSubmit()"/></td></tr>
+    </table>
+</form>
+
+
+
+
+
+</body>
+</html>
