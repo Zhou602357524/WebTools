@@ -1,13 +1,13 @@
 package com.xwcet.tools.core.pushtools;
 
-import org.hibernate.engine.jdbc.ReaderInputStream;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -22,26 +22,36 @@ import java.io.*;
 public class PushController {
 
     @RequestMapping("/index")
-    public String index(MultipartFile sourceData, String name) {
-        try {
-        if (sourceData != null) {
-            System.out.println(sourceData.getOriginalFilename());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(sourceData.getInputStream()));
+    public String index() {
 
-            String line;
-            while ((line = reader.readLine()) != null){
-                System.out.println(line);
-            }
-
-        }
-
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
         return "push/push_tools";
     }
 
+    @ResponseBody
+    @RequestMapping("/process")
+    public String process(MultipartFile sourceData, String name) {
 
+        try {
+
+            System.out.println(sourceData.getOriginalFilename());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(sourceData.getInputStream()));
+            List<String> strList = new ArrayList<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                strList.add(line);
+            }
+            int size = strList.size() / 4;
+            int offset = 0;
+
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(""))));
+            for (int i = 0; i < 4; i++) {
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
 }
