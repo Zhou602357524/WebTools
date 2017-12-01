@@ -10,30 +10,44 @@
 
 <script type="text/javascript">
 
-    function doSubmit(){
-        var file = document.getElementById('sourceData');
-        if (file.value == "") {
-            alert("请选择您需要上传的文件！");
-        }else{
-            $("#pushFrom").submit();
+    function doSubmit() {
+        if (confirm("确定提交?")) {
+            var file = document.getElementById('sourceData');
+            var value = file.value;
+            if(!/.(txt|TXT)$/.test(value)){
+                alert("文本类型必须是.txt或者.TXT");
+                return;
+            }
+            if (value == "") {
+                alert("请选择您需要上传的文件！");
+            } else {
+                $("#pushFrom").submit();
+                $("#pushFrom")[0].reset();
+            }
         }
     }
 
 </script>
-<form enctype="multipart/form-data" id="pushFrom" action="/push/index" method="post">
+<form enctype="multipart/form-data" id="pushFrom" action="/push/process" method="post">
 
     <table>
-
-        <tr><td>源数据:<input id="sourceData" name="sourceData" type="file"/></td></tr>
-        <tr><td>name:<input name="name" type="text"/></td></tr>
-        <tr><td>a</td></tr>
-        <tr><td>A</td></tr>
-        <tr><td><input type="button" value="提交" onclick="doSubmit()"/></td></tr>
+        <tr>
+            <td>源数据:<input id="sourceData" name="sourceData" type="file"/></td>
+        </tr>
+        <tr>
+            <td>splitNumber:<input id="splitNumber" name="splitNumber" type="text"/></td>
+        </tr>
+        <tr>
+            <td>aBCD</td>
+        </tr>
+        <tr>
+            <td>A</td>
+        </tr>
+        <tr>
+            <td><input type="button" value="提交" onclick="doSubmit()"/></td>
+        </tr>
     </table>
 </form>
-
-
-
 
 
 </body>

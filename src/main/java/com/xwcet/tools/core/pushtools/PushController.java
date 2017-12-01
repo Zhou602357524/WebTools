@@ -1,13 +1,14 @@
 package com.xwcet.tools.core.pushtools;
 
+import com.xwcet.tools.core.io.IOUtils;
+import com.xwcet.tools.core.service.pushtools.PushService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -21,36 +22,26 @@ import java.util.List;
 @RequestMapping("/push")
 public class PushController {
 
+    private PushService pushService;
+    @Autowired
+    public PushController(PushService pushService) {
+        this.pushService = pushService;
+    }
+
     @RequestMapping("/index")
     public String index() {
 
         return "push/push_tools";
     }
 
+
+
     @ResponseBody
-    @RequestMapping("/process")
-    public String process(MultipartFile sourceData, String name) {
+    @PostMapping("/process")
+    public Object process(@RequestParam(required = true,name = "sourceData") MultipartFile sourceData, @RequestParam(defaultValue="1")int splitNumber, HttpServletResponse response) {
+        String zipPath = pushService.compressedFiles(sourceData, splitNumber);
 
-        try {
-
-            System.out.println(sourceData.getOriginalFilename());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(sourceData.getInputStream()));
-            List<String> strList = new ArrayList<>();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                strList.add(line);
-            }
-            int size = strList.size() / 4;
-            int offset = 0;
-
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(""))));
-            for (int i = 0; i < 4; i++) {
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return IOUtils.responseWrite(response,zipPath) == 1;
     }
 
 

@@ -7,21 +7,20 @@ import java.util.zip.ZipOutputStream;
 
 public class ZipTools {
     private String baseName;
-    private String zipFileName;      // 目的地Zip文件
 
 
-    public ZipTools(String zipFileName, String baseName) {
+    public ZipTools(String baseName) {
         this.baseName = baseName;
-        this.zipFileName = zipFileName;
     }
 
 
-    public void zip(@NotNull String... sourceFileName) throws Exception {
+    public void zip(@NotNull String zipFileName,@NotNull String... sourceFileName) throws Exception {
 
         //File zipFile = new File(zipFileName);
         System.out.println("压缩中...");
         //创建zip输出流
         ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFileName)));
+
         for (String filename : sourceFileName) {
             File sourceFile = new File(filename);
             //如果路径为目录（文件夹）
@@ -35,17 +34,44 @@ public class ZipTools {
                 } else {
                     for (int i = 0; i < fileList.length; i++) {
                         File file = fileList[i];
-                        if (!file.getPath().endsWith(zipFileName))
+                        if (!file.getPath().equals(zipFileName))
                             compress(out, file, baseName + "/" + file.getName());
                     }
                 }
             } else {
-                compress(out, sourceFile, sourceFile.getName());
+                compress(out, sourceFile,baseName + "/" +  sourceFile.getName());
             }
         }
         out.close();
         System.out.println("压缩完成");
 
+    }
+
+    public void zipByteOutArr(String zipFileName,ByteArrayOutputStream[] byteOutArr,String baseName){
+        File zipFile = new File(zipFileName);
+        checkFileDirectory(zipFile.getParent());
+        try
+                (ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile))))
+        {
+            //File zipFile = new File(zipFileName);
+            System.out.println("压缩中...");
+            //创建zip输出流
+            for (int i = 0; i < byteOutArr.length; i++) {
+                System.out.println("压缩part" + i + " start");
+                compress(out,byteOutArr[i],this.baseName + "/" + "part" + i + "_" + baseName);
+                System.out.println("压缩part" + i + " end");
+            }
+            System.out.println("压缩完成");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void checkFileDirectory(String fileNane) {
+        File fileDirectory = new File(fileNane);
+        if (!fileDirectory.exists())
+            fileDirectory.mkdirs();
     }
 
     /**
@@ -54,7 +80,7 @@ public class ZipTools {
      * @param base       文件名
      * @throws Exception 可能产生压缩异常
      */
-    public void compress(ZipOutputStream out, File sourceFile, String base) throws Exception {
+    private void compress(ZipOutputStream out, File sourceFile, String base) throws Exception {
 
         out.putNextEntry(new ZipEntry(base));
         //读取源文件
@@ -70,15 +96,18 @@ public class ZipTools {
         bis.close();
     }
 
-    public static void main(String[] args) {
-        ZipTools zipCom = new ZipTools("D:\\迅雷下载\\纸牌屋5\\视频任务组_20171129_2104\\test\\1.zip",
-                "test");
-        try {
-            zipCom.zip("D:\\迅雷下载\\纸牌屋5\\视频任务组_20171129_2104\\test",
-                    "D:\\迅雷下载\\纸牌屋5\\视频任务组_20171129_2104\\test2");
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void compress(ZipOutputStream out,ByteArrayOutputStream byteOut, String base) throws Exception {
+        try  {
+            out.putNextEntry(new ZipEntry(base));
+
+            out.write(byteOut.toByteArray());
+        } finally {
+            if (byteOut != null){
+                byteOut.close();
+                byteOut = null;
+            }
         }
+
     }
 
 }
