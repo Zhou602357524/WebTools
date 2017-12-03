@@ -1,3 +1,4 @@
+/*
 package com.xwcet.tools.config;
 import com.alibaba.druid.support.http.StatViewServlet;
 import com.alibaba.druid.support.http.WebStatFilter;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
+*/
 /**
  * \* Created with IntelliJ IDEA.
  * \* User: zc
@@ -20,7 +22,8 @@ import javax.sql.DataSource;
  * \* Time: 下午 2:40
  * \* Description:
  * \
- */
+ *//*
+
 
 @Configuration
 @ConditionalOnClass(com.alibaba.druid.pool.DruidDataSource.class)
@@ -33,11 +36,13 @@ public class DruidDataSourceConfiguration {
         return (T) properties.initializeDataSourceBuilder().type(type).build();
     }
 
-    /**
+    */
+/**
      * @see org.springframework.boot.autoconfigure.jdbc.DataSourceConfiguration.Tomcat 仿写的你可以去了解
      * @param properties 读入的配置
      * @return DruidDataSource
-     */
+     *//*
+
     @Bean
     @ConfigurationProperties("spring.datasource.druid")
     public com.alibaba.druid.pool.DruidDataSource dataSource(DataSourceProperties properties) {
@@ -56,9 +61,11 @@ public class DruidDataSourceConfiguration {
         return dataSource;
     }
 
-    /**
+    */
+/**
      * 注册一个StatViewServlet
-     */
+     *//*
+
     @Bean
     public ServletRegistrationBean druidStatViewServlet(){
         //org.springframework.boot.context.embedded.ServletRegistrationBean提供类的进行注册.
@@ -77,9 +84,11 @@ public class DruidDataSourceConfiguration {
         return servletRegistrationBean;
     }
 
-    /**
+    */
+/**
      * 注册一个：filterRegistrationBean
-     */
+     *//*
+
     @Bean
     public FilterRegistrationBean druidStatFilter(){
 
@@ -93,4 +102,4 @@ public class DruidDataSourceConfiguration {
     }
 
 
-}
+}*/

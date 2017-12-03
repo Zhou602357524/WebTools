@@ -1,6 +1,4 @@
-package com.xwcet.tools.core.date;
-
-import java.text.SimpleDateFormat;
+package com.xwcet.tools.core.utils.date;
 
 /**
  * \* Created with IntelliJ IDEA.

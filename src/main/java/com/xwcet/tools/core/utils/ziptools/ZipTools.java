@@ -1,4 +1,4 @@
-package com.xwcet.tools.core.ziptools;
+package com.xwcet.tools.core.utils.ziptools;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;

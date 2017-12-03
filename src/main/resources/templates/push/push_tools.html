@@ -12,24 +12,44 @@
 
     function doSubmit() {
         if (confirm("确定提交?")) {
-            var file = document.getElementById('sourceData');
-            var value = file.value;
-            if(!/.(txt|TXT)$/.test(value)){
-                alert("文本类型必须是.txt或者.TXT");
-                return;
-            }
-            if (value == "") {
-                alert("请选择您需要上传的文件！");
-            } else {
-                $("#pushFrom").submit();
-                $("#pushFrom")[0].reset();
-            }
+            checkImg();
         }
     }
 
+    function refresh() {
+        $("#img").attr("src", "/captcha/getCaptcha?" + Math.random())
+    }
+
+    function checkImg() {
+        var val = $("#imgValue").val();
+        $.post("/captcha/checkCaptcha",{"val":val},function (data) {
+            if (data == "success") {
+                var file = document.getElementById('sourceData');
+                var value = file.value;
+                if (!/.(txt|TXT)$/.test(value)) {
+                    alert("文本类型必须是.txt或者.TXT");
+                    return;
+                }
+                if (value == "") {
+                    alert("请选择您需要上传的文件！");
+                } else {
+                    $("#pushFrom").submit();
+                    $("#pushFrom")[0].reset();
+                }
+            } else {
+                alert("验证码错误,请重新输入");
+                refresh();
+            }
+        });
+    }
+    function doSubmit2() {
+        $.post("/user/getusers",{"role":5},function () {
+            alert(123);
+        });
+    }
 </script>
 <form enctype="multipart/form-data" id="pushFrom" action="/push/process" method="post">
-
+    <input type="hidden"/>
     <table>
         <tr>
             <td>源数据:<input id="sourceData" name="sourceData" type="file"/></td>
@@ -41,12 +61,13 @@
             <td>aBCD</td>
         </tr>
         <tr>
-            <td>A</td>
+            <a><td>请输出验证码:<input id = "imgValue" type="text"/><img id="img" src="/captcha/getCaptcha" onclick="refresh()"/></td></a>
         </tr>
         <tr>
             <td><input type="button" value="提交" onclick="doSubmit()"/></td>
         </tr>
     </table>
+    <input type="button" value="提交2" onclick="doSubmit2()"/>
 </form>
 
 

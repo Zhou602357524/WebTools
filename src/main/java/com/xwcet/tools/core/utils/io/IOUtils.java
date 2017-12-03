@@ -1,4 +1,4 @@
-package com.xwcet.tools.core.io;
+package com.xwcet.tools.core.utils.io;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
