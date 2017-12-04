@@ -46,7 +46,7 @@ public class PushController {
     public Object process(@RequestParam(name = "sourceData") MultipartFile sourceData, @RequestParam(defaultValue="1")int splitNumber, HttpServletResponse response) {
         String zipPath = pushService.compressedFiles(sourceData, splitNumber);
 
-        return IOUtils.responseWrite(response,zipPath) == 1;
+        return IOUtils.responseWrite(response,zipPath);
     }
 
 
