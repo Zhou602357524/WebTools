@@ -1,4 +1,4 @@
-package com.xwcet.tools.core.web.filter;
+package com.xwcet.tools.config.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xwcet.tools.core.entity.ResultMsg;
