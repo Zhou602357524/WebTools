@@ -1,6 +1,6 @@
 package com.xwcet.tools;
 
-import com.xwcet.tools.core.web.filter.HTTPBearerAuthorizeAttribute;
+import com.xwcet.tools.config.filter.HTTPBearerAuthorizeAttribute;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -13,7 +13,6 @@ import java.util.List;
 
 @SpringBootApplication
 @EnableCaching
-//@EnableConfigurationProperties()
 @EnableTransactionManagement
 public class WebToolsApplication {
 
