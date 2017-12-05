@@ -1,13 +1,11 @@
 package com.xwcet.tools.core.web;
 
-import com.xwcet.tools.core.entity.Audience;
-import com.xwcet.tools.core.entity.ResultMsg;
-import com.xwcet.tools.core.entity.ResultStatusCode;
-import com.xwcet.tools.core.entity.UserInfo;
+import com.xwcet.tools.core.entity.*;
 import com.xwcet.tools.core.repository.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -79,6 +77,13 @@ public class UserController {
     public Object getAudience()
     {
         ResultMsg resultMsg = new ResultMsg(ResultStatusCode.OK.getErrcode(), ResultStatusCode.OK.getErrmsg(), audience);
+        return resultMsg;
+    }
+
+    @RequestMapping("globalexceptiontest")
+    public Object globalExceptionTest(@Validated @RequestBody BeanValidation data)
+    {
+        ResultMsg resultMsg = new ResultMsg(ResultStatusCode.OK.getErrcode(), ResultStatusCode.OK.getErrmsg(), data);
         return resultMsg;
     }
 }

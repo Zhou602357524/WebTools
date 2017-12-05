@@ -7,7 +7,7 @@ public enum ResultStatusCode {
     INVALID_CLIENTID(30003, "Invalid clientid"),
     INVALID_PASSWORD(30004, "User name or password is incorrect"),
     INVALID_CAPTCHA(30005, "Invalid captcha or captcha overdue"),
-    INVALID_TOKEN(30006, "Invalid token");
+    INVALID_TOKEN(30006, "Invalid token"), PARAMETER_ERROR(3008, "parameter_error");
 
 
     private int errcode;

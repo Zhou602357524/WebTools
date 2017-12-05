@@ -28,7 +28,7 @@ public class PushController {
     private PushService pushService;
     private RedisTemplate<Object,Object> redisTemplate;
 
-    @Autowired
+    @Autowired(required = false)
     public PushController(PushService pushService,RedisTemplate<Object,Object> redisTemplate1) {
         this.pushService = pushService;
         this.redisTemplate = redisTemplate1;
