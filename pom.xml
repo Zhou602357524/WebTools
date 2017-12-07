@@ -81,11 +81,11 @@
 		</dependency>-->
 		<!-- redis -->
 		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-redis -->
-		<dependency>
+		<!--<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-redis</artifactId>
-			<!--<version>1.4.7.RELEASE</version>-->
-		</dependency>
+			&lt;!&ndash;<version>1.4.7.RELEASE</version>&ndash;&gt;
+		</dependency>-->
 
 		<!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
 		<dependency>

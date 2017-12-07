@@ -2,6 +2,8 @@ package com.xwtec.tools.core.service.pushtools;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * \* Created with IntelliJ IDEA.
  * \* User: zc
@@ -19,4 +21,7 @@ public interface PushService {
      */
     String compressedFiles(MultipartFile sourceData,int splitNumber);
 
+    void insertPhoneNumbers(List<String> numbers);
+
+    void truncate();
 }

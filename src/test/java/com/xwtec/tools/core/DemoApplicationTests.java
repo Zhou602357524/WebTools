@@ -1,7 +1,7 @@
 package com.xwtec.tools.core;
 
-import com.xwtec.tools.core.entity.PushEntity;
 import com.xwtec.tools.core.repository.PushRepository;
+import com.xwtec.tools.core.service.pushtools.PushService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,26 +9,36 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class DemoApplicationTests {
-	@Autowired
-	private PushRepository pushRepository;
-	@Test
-	public void contextLoads() {
+    @Autowired
+    private PushRepository pushRepository;
+    @Autowired
+    private PushService pushService;
+    @Test
+    //@Transactional
+    public void contextLoads() {
 
-		ArrayList<PushEntity> arr = new ArrayList<>();
-		for (int i = 0; i < 500; i++) {
-			PushEntity pushEntity = new PushEntity();
-			pushEntity.setPhone(String.valueOf(i));
-			arr.add(pushEntity);
-		}
+    }
 
+    @Test
+    public void insert() throws Exception {
+        ArrayList<String> arr = new ArrayList<>();
+        for (int i = 1; i < 100000; i++) {
 
-		pushRepository.save(arr);
+            arr.add(String.valueOf(i));
+        }
 
-	}
+        pushService.insertPhoneNumbers(arr);
+    }
+
+    @Test
+    public void truncate() {
+        System.out.println("===========操作系统是:"+System.getProperties().getProperty("os.name"));
+
+        pushService.truncate();
+    }
 
 }

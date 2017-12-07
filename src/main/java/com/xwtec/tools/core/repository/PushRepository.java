@@ -1,7 +1,8 @@
 package com.xwtec.tools.core.repository;
 
-import com.xwtec.tools.core.entity.PushEntity;
-import org.springframework.data.repository.CrudRepository;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -11,5 +12,10 @@ import org.springframework.data.repository.CrudRepository;
  * \* Description:
  * \
  */
-public interface PushRepository extends CrudRepository<PushEntity,String> {
+public interface PushRepository {
+
+    void insertPhoneNumbers(List<String> numbers);
+    @Select("TRUNCATE TABLE t_push_msgid")
+    void truncate();
+
 }

@@ -1,3 +1,4 @@
+/*
 package com.xwtec.tools.config;
 
 import com.alibaba.druid.support.http.StatViewServlet;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
+*/
 /**
  * \* Created with IntelliJ IDEA.
  * \* User: zc
@@ -21,7 +23,8 @@ import javax.sql.DataSource;
  * \* Time: 下午 2:40
  * \* Description:
  * \
- */
+ *//*
+
 
 
 @Configuration
@@ -35,11 +38,13 @@ public class DruidDataSourceConfiguration {
         return (T) properties.initializeDataSourceBuilder().type(type).build();
     }
 
-    /**
+    */
+/**
      * @param properties 读入的配置
      * @return DruidDataSource
      * @see org.springframework.boot.autoconfigure.jdbc.DataSourceConfiguration.Tomcat 仿写的你可以去了解
-     */
+     *//*
+
     @Bean
     @ConfigurationProperties("spring.datasource.druid")
 
@@ -59,9 +64,11 @@ public class DruidDataSourceConfiguration {
         return dataSource;
     }
 
-    /**
+    */
+/**
      * 注册一个StatViewServlet
-     */
+     *//*
+
     @Bean
     public ServletRegistrationBean druidStatViewServlet() {
         //org.springframework.boot.context.embedded.ServletRegistrationBean提供类的进行注册.
@@ -80,9 +87,11 @@ public class DruidDataSourceConfiguration {
         return servletRegistrationBean;
     }
 
-    /**
+    */
+/**
      * 注册一个：filterRegistrationBean
-     */
+     *//*
+
     @Bean
     public FilterRegistrationBean druidStatFilter() {
 
@@ -97,3 +106,4 @@ public class DruidDataSourceConfiguration {
 
 
 }
+*/
