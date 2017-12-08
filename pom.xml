@@ -26,11 +26,7 @@
 	</parent>
 
 	<dependencies>
-		<!-- Spring data jpa -->
-		<!--<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>-->
+
 		<!-- mybatis -->
 		<dependency>
 			<groupId>org.mybatis.spring.boot</groupId>
@@ -50,9 +46,14 @@
 			<version>4.3.13.RELEASE</version>
 		</dependency>
 
+		<!--<dependency>-->
+			<!--<groupId>mysql</groupId>-->
+			<!--<artifactId>mysql-connector-java</artifactId>-->
+		<!--</dependency>-->
+
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 
 		<!-- oracle -->
@@ -73,19 +74,7 @@
 		<artifactId>druid</artifactId>
 		<version>1.1.5</version>
 		</dependency>
-		<!-- spring boot 热部署 -->
-		<!--<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<optional>true</optional>
-		</dependency>-->
-		<!-- redis -->
-		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-redis -->
-		<!--<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-redis</artifactId>
-			&lt;!&ndash;<version>1.4.7.RELEASE</version>&ndash;&gt;
-		</dependency>-->
+
 
 		<!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
 		<dependency>
@@ -99,15 +88,6 @@
 			<version>1.2.2</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt</artifactId>
-			<!--<version>0.9.0</version>-->
-			<version>0.6.0</version>
-			<!--<version>0.7.0</version>-->
-		</dependency>
-
 	</dependencies>
 
 	<build>
@@ -115,10 +95,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<!-- spring boot 热部署 -->
-				<!--<configuration>
-					<fork>false</fork>
-				</configuration>-->
 			</plugin>
 		</plugins>
 	</build>

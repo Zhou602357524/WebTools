@@ -1,5 +1,6 @@
 package com.xwtec.tools.core.web;
 
+import com.xwtec.tools.core.entity.PushParm;
 import com.xwtec.tools.core.utils.io.IOUtils;
 import com.xwtec.tools.core.service.pushtools.PushService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -42,11 +44,22 @@ public class PushController {
 
     @ResponseBody
     @PostMapping("/process")
-    public Object process(@RequestParam(name = "sourceData") MultipartFile sourceData, @RequestParam(defaultValue="1")int splitNumber, HttpServletResponse response) {
-        String zipPath = pushService.compressedFiles(sourceData, splitNumber);
+    public Object process(
+            @RequestParam(name = "sourceData") MultipartFile sourceData,
+            HttpServletResponse response,
+            PushParm pushParm,
+            HttpServletRequest request)
+    {
+        String zipPath = pushService.compressedFiles(sourceData,pushParm);
 
         return IOUtils.responseWrite(response,zipPath);
     }
 
+
+    @RequestMapping("/getCount")
+    @ResponseBody
+    public Object getCount(){
+        return pushService.getCount();
+    }
 
 }

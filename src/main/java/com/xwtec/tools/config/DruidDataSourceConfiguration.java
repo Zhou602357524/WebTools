@@ -1,6 +1,6 @@
-/*
 package com.xwtec.tools.config;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.support.http.StatViewServlet;
 import com.alibaba.druid.support.http.WebStatFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -15,16 +15,14 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
-*/
 /**
- * \* Created with IntelliJ IDEA.
- * \* User: zc
- * \* Date: 2017/12/1 0001
- * \* Time: 下午 2:40
- * \* Description:
+ * \*Created with IntelliJ IDEA.
+ * \*User:zc
+ * \*Date:2017/12/1 0001
+ * \*Time:下午 2:40
+ * \*Description:
  * \
- *//*
-
+ */
 
 
 @Configuration
@@ -38,13 +36,11 @@ public class DruidDataSourceConfiguration {
         return (T) properties.initializeDataSourceBuilder().type(type).build();
     }
 
-    */
-/**
+    /**
      * @param properties 读入的配置
      * @return DruidDataSource
      * @see org.springframework.boot.autoconfigure.jdbc.DataSourceConfiguration.Tomcat 仿写的你可以去了解
-     *//*
-
+     */
     @Bean
     @ConfigurationProperties("spring.datasource.druid")
 
@@ -64,10 +60,9 @@ public class DruidDataSourceConfiguration {
         return dataSource;
     }
 
-    */
-/**
+    /**
      * 注册一个StatViewServlet
-     *//*
+     */
 
     @Bean
     public ServletRegistrationBean druidStatViewServlet() {
@@ -76,9 +71,9 @@ public class DruidDataSourceConfiguration {
 
         //添加初始化参数：initParams
         //白名单：
-        servletRegistrationBean.addInitParameter("allow", "127.0.0.1");
+        //servletRegistrationBean.addInitParameter("allow", "127.0.0.1,10.113.113.55");
         //IP黑名单 (存在共同时，deny优先于allow) : 如果满足deny的话提示:Sorry, you are not permitted to view this page.
-        servletRegistrationBean.addInitParameter("deny", "192.168.1.73");
+        //servletRegistrationBean.addInitParameter("deny", "");
         //登录查看信息的账号密码.
         servletRegistrationBean.addInitParameter("loginUsername", "root");
         servletRegistrationBean.addInitParameter("loginPassword", "password");
@@ -87,14 +82,12 @@ public class DruidDataSourceConfiguration {
         return servletRegistrationBean;
     }
 
-    */
-/**
+    /**
      * 注册一个：filterRegistrationBean
-     *//*
+     */
 
     @Bean
     public FilterRegistrationBean druidStatFilter() {
-
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(new WebStatFilter());
         filterRegistrationBean.setName("druidWebStatFilter");
         //添加过滤规则.
@@ -106,4 +99,3 @@ public class DruidDataSourceConfiguration {
 
 
 }
-*/

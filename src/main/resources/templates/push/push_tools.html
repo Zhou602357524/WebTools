@@ -12,41 +12,23 @@
 
     function doSubmit() {
         if (confirm("确定提交?")) {
-            checkImg();
+            var file = document.getElementById('sourceData');
+            var value = file.value;
+            if (value == "") {
+                alert("请选择您需要上传的文件！");
+                return;
+            }
+            if (!/.(txt|TXT)$/.test(value)) {
+                alert("文本类型必须是.txt或者.TXT");
+                return;
+            }
+
+            $("#pushFrom").submit();
+            $("#pushFrom")[0].reset();
+
         }
     }
 
-    function refresh() {
-        $("#img").attr("src", "/captcha/getCaptcha?" + Math.random())
-    }
-
-    function checkImg() {
-        var val = $("#imgValue").val();
-        $.post("/captcha/checkCaptcha",{"val":val},function (data) {
-            if (data == "success") {
-                var file = document.getElementById('sourceData');
-                var value = file.value;
-                if (!/.(txt|TXT)$/.test(value)) {
-                    alert("文本类型必须是.txt或者.TXT");
-                    return;
-                }
-                if (value == "") {
-                    alert("请选择您需要上传的文件！");
-                } else {
-                    $("#pushFrom").submit();
-                    $("#pushFrom")[0].reset();
-                }
-            } else {
-                alert("验证码错误,请重新输入");
-                refresh();
-            }
-        });
-    }
-    function doSubmit2() {
-        $.post("/user/getusers",{"role":5},function () {
-            alert(123);
-        });
-    }
 </script>
 <form enctype="multipart/form-data" id="pushFrom" action="/push/process" method="post">
     <input type="hidden"/>
@@ -55,19 +37,38 @@
             <td>源数据:<input id="sourceData" name="sourceData" type="file"/></td>
         </tr>
         <tr>
-            <td>splitNumber:<input id="splitNumber" name="splitNumber" type="text"/></td>
+            <td>分割数量:
+                <select name="splitNumber">
+                    <option value="1" selected="selected">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </td>
         </tr>
         <tr>
-            <td>aBCD</td>
+            <td>选择版本:
+                <label><input checked="checked" name="version_ios" type="checkbox" value="true"/>IOS </label>
+                <label><input checked="checked" name="version_android" type="checkbox" value="true"/>Android </label>
+            </td>
         </tr>
         <tr>
-            <a><td>请输出验证码:<input id = "imgValue" type="text"/><img id="img" src="/captcha/getCaptcha" onclick="refresh()"/></td></a>
+            <td>选择字段:
+                <label><input checked="checked" name="show_phone" type="checkbox" value="true"/>phone </label>
+                <label><input checked="checked" name="show_msgid" type="checkbox" value="true"/>msgid </label>
+            </td>
         </tr>
         <tr>
             <td><input type="button" value="提交" onclick="doSubmit()"/></td>
         </tr>
     </table>
-    <input type="button" value="提交2" onclick="doSubmit2()"/>
+
 </form>
 
 

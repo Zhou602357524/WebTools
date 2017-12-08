@@ -9,6 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -25,20 +28,21 @@ public class DemoApplicationTests {
 
     @Test
     public void insert() throws Exception {
-        ArrayList<String> arr = new ArrayList<>();
-        for (int i = 1; i < 100000; i++) {
+        List<String> arr = new ArrayList<>();
+        for (int i = 0; i < 100000; i++) {
 
             arr.add(String.valueOf(i));
         }
-
-        pushService.insertPhoneNumbers(arr);
+        long start = System.currentTimeMillis();
+        //pushService.insertPhoneNumbers(arr);
+        System.out.println(System.currentTimeMillis() - start);
     }
 
     @Test
     public void truncate() {
         System.out.println("===========操作系统是:"+System.getProperties().getProperty("os.name"));
 
-        pushService.truncate();
+        //pushService.truncate();
     }
 
 }

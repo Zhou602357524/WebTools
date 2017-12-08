@@ -44,6 +44,15 @@ package com.xwtec.tools.core.entity;
 public class UserInfoEntity {
 
     private String phone;
+    private String msgid;
+
+    public String getMsgid() {
+        return msgid;
+    }
+
+    public void setMsgid(String msgid) {
+        this.msgid = msgid;
+    }
 
     public String getPhone() {
         return phone;

@@ -1,5 +1,7 @@
 package com.xwtec.tools.core.service.pushtools;
 
+import com.xwtec.tools.core.entity.PushParm;
+import com.xwtec.tools.core.entity.UserInfoEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -16,12 +18,13 @@ public interface PushService {
     /**
      * 处理推送文件
      * @param sourceData 源文件
-     * @param splitNumber 切片数量
      * @return 返回对应ZipPath路径
      */
-    String compressedFiles(MultipartFile sourceData,int splitNumber);
+    String compressedFiles(MultipartFile sourceData, PushParm pushParm);
 
-    void insertPhoneNumbers(List<String> numbers);
+    void insertPhoneNumbers(List<UserInfoEntity> numbers);
 
     void truncate();
+
+    int getCount();
 }
