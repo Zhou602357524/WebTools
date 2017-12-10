@@ -71,6 +71,8 @@ public class PushServiceImpl implements PushService {
                 pushRepository.insertPhoneNumbers(numbers.subList(offset, offset + MAX_NUMBER));
                 offset += MAX_NUMBER;
             }
+        } else {
+            pushRepository.insertPhoneNumbers(numbers);
         }
     }
 
