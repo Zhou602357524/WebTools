@@ -11,6 +11,12 @@ public class ResultMsg {
         this.errmsg = ErrMsg;
         this.p2pdata = P2pData;
     }
+
+    public ResultMsg(int errcode, String errmsg) {
+        this.errcode = errcode;
+        this.errmsg = errmsg;
+    }
+
     public int getErrcode() {
         return errcode;
     }

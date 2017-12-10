@@ -8,7 +8,7 @@ package com.xwtec.tools.core.entity;
  * \* Description:
  * \
  */
-public class PushParm {
+public class PushParams {
 
     private boolean version_ios;
     private boolean version_android;

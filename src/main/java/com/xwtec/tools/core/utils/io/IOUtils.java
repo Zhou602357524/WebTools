@@ -1,5 +1,7 @@
 package com.xwtec.tools.core.utils.io;
 
+import com.xwtec.tools.core.entity.ResultStatusCode;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -14,9 +16,6 @@ import java.text.SimpleDateFormat;
  */
 public class IOUtils {
 
-    private static final int SUCESS = 1;
-    private static final int ERROR = -1;
-
     /**
      * 通过response将目标文件输出
      *
@@ -24,7 +23,7 @@ public class IOUtils {
      * @param path     目标文件
      * @return 返回成功与否
      */
-    public static int responseWrite(HttpServletResponse response, String path) {
+    public static ResultStatusCode responseWrite(HttpServletResponse response, String path) {
         File file = new File(path);
         try
                 (
@@ -40,14 +39,14 @@ public class IOUtils {
             while ((length = in.read(bytes)) != -1) {
                 out.write(bytes, 0, length);
             }
-            return SUCESS;
+            return ResultStatusCode.OK;
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             if (file.exists())
                 file.delete();
         }
-        return ERROR;
+        return ResultStatusCode.SYSTEM_ERR;
     }
 
 

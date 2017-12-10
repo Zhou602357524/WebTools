@@ -1,7 +1,6 @@
 package com.xwtec.tools.core.web;
 
-import com.xwtec.tools.core.entity.PushParm;
-import com.xwtec.tools.core.utils.io.IOUtils;
+import com.xwtec.tools.core.entity.PushParams;
 import com.xwtec.tools.core.service.pushtools.PushService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,8 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -27,18 +28,14 @@ import javax.servlet.http.HttpServletResponse;
 public class PushController {
 
     private PushService pushService;
-    //private RedisTemplate<Object,Object> redisTemplate;
 
-    @Autowired(required = false)
+    @Autowired
     public PushController(PushService pushService) {
         this.pushService = pushService;
-        //this.redisTemplate = redisTemplate1;
     }
 
     @RequestMapping("/index")
     public String index() {
-
-
         return "push/push_tools";
     }
 
@@ -47,19 +44,30 @@ public class PushController {
     public Object process(
             @RequestParam(name = "sourceData") MultipartFile sourceData,
             HttpServletResponse response,
-            PushParm pushParm,
-            HttpServletRequest request)
-    {
-        String zipPath = pushService.compressedFiles(sourceData,pushParm);
+            PushParams pushParams) {
 
-        return IOUtils.responseWrite(response,zipPath);
+        return  pushService.compressedFiles(sourceData, pushParams,response);
     }
-
 
     @RequestMapping("/getCount")
     @ResponseBody
-    public Object getCount(){
+    public Object getCount() {
         return pushService.getCount();
+    }
+
+    @RequestMapping("print")
+    @ResponseBody
+    public Object print(@RequestParam(name = "sourceData") MultipartFile sourceData){
+        StringBuilder sb = new StringBuilder();
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(sourceData.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) !=null)
+                sb.append(line).append("\r\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return sb.toString();
     }
 
 }

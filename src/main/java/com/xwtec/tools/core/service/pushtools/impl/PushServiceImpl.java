@@ -1,15 +1,19 @@
 package com.xwtec.tools.core.service.pushtools.impl;
 
-import com.xwtec.tools.core.entity.PushParm;
+import com.xwtec.tools.core.entity.PushParams;
+import com.xwtec.tools.core.entity.ResultMsg;
+import com.xwtec.tools.core.entity.ResultStatusCode;
 import com.xwtec.tools.core.entity.UserInfoEntity;
 import com.xwtec.tools.core.repository.PushRepository;
 import com.xwtec.tools.core.service.pushtools.PushService;
+import com.xwtec.tools.core.utils.io.IOUtils;
 import com.xwtec.tools.core.utils.ziptools.ZipTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -37,7 +41,21 @@ public class PushServiceImpl implements PushService {
     private final String ENTER;
     private final int MAX_NUMBER;
 
-    @Override
+    @Autowired
+    public PushServiceImpl(PushRepository pushRepository) {
+        this.pushRepository = pushRepository;
+        BASE_NAME = "push_tool";
+        CHINA_MOBILE_NUMBER = "^((13[4-9])|(147)|(15[0-2,7-9])|(17[8])|(18[2-4,7-8]))\\d{8}|(170[5])\\d{7}|(198)\\d{8}$";
+        BASE_PATH = getClass().getResource("/").getPath() + "temp/" + BASE_NAME;
+        zipTools = new ZipTools(BASE_NAME);
+        String os = System.getProperty("os.name");
+        MAX_NUMBER = 1000;
+        if (os.toLowerCase().startsWith("win"))
+            ENTER = "\r\n";
+        else
+            ENTER = "\n";
+    }
+
     public void insertPhoneNumbers(List<UserInfoEntity> numbers) {
         int size = numbers.size();
         int i = size / MAX_NUMBER;
@@ -61,33 +79,17 @@ public class PushServiceImpl implements PushService {
         return pushRepository.selectCount();
     }
 
-    @Override
-    public void truncate() {
+    private void truncate() {
         pushRepository.truncate();
     }
 
-    @Autowired
-    public PushServiceImpl(PushRepository pushRepository) {
-        this.pushRepository = pushRepository;
-        BASE_NAME = "push_tool";
-        CHINA_MOBILE_NUMBER = "^((13[4-9])|(147)|(15[0-2,7-9])|(17[8])|(18[2-4,7-8]))\\d{8}|(170[5])\\d{7}|(198)\\d{8}$";
-        BASE_PATH = getClass().getResource("/").getPath() + "temp/" + BASE_NAME;
-        zipTools = new ZipTools(BASE_NAME);
-        String os = System.getProperty("os.name");
-        MAX_NUMBER = 1000;
-        if (os.toLowerCase().startsWith("win"))
-            ENTER = "\r\n";
-        else
-            ENTER = "\n";
-    }
-
     @Override
-    public String compressedFiles(MultipartFile sourceData, PushParm pushParm) {
+    public ResultMsg compressedFiles(MultipartFile sourceData, PushParams pushParams, HttpServletResponse response) {
 
         String zipPath = null;
+        ResultStatusCode result;
         try {
             String originalFilename = sourceData.getOriginalFilename();
-
             BufferedReader reader = new BufferedReader(new InputStreamReader(sourceData.getInputStream()));
             Set<UserInfoEntity> strSet = new HashSet<>();
             String line;
@@ -102,22 +104,24 @@ public class PushServiceImpl implements PushService {
             }
             List<UserInfoEntity> userInfoEntities = new ArrayList<>(strSet);
             pushRepository.insertPhoneNumbers(userInfoEntities);
-            userInfoEntities = selectVersion(pushParm);
+            userInfoEntities = selectVersion(pushParams);
 
-            ByteArrayOutputStream[] byteOutArr = getByteArrayOutputStreams(pushParm,userInfoEntities);
+            ByteArrayOutputStream[] byteOutArr = getByteArrayOutputStreams(pushParams,userInfoEntities);
 
             zipPath = BASE_PATH + "_" + UUID.randomUUID().toString().replace("-", "") + ".zip";
             zipTools.zipByteOutArr(zipPath, byteOutArr, originalFilename);
+            result = IOUtils.responseWrite(response, zipPath);
         } catch (IOException e) {
             e.printStackTrace();
+            result = ResultStatusCode.SYSTEM_ERR;
         } finally {
-            pushRepository.truncate();
+            truncate();
         }
-        return zipPath;
+        return new ResultMsg(result.getErrcode(),result.getErrmsg());
     }
 
-    private ByteArrayOutputStream[] getByteArrayOutputStreams(PushParm pushParm, List<UserInfoEntity> userInfoEntities) throws IOException {
-        int splitNumber = pushParm.getSplitNumber();
+    private ByteArrayOutputStream[] getByteArrayOutputStreams(PushParams pushParams, List<UserInfoEntity> userInfoEntities) throws IOException {
+        int splitNumber = pushParams.getSplitNumber();
         ByteArrayOutputStream[] byteOutArr = new ByteArrayOutputStream[splitNumber];
         int size = userInfoEntities.size() / splitNumber;
         int offset = 0;
@@ -129,11 +133,11 @@ public class PushServiceImpl implements PushService {
             for (int j = offset; j < i1; j++) {
                 String content = "";
                 UserInfoEntity userInfoEntity = userInfoEntities.get(j);
-                if (pushParm.isShow_phone() && pushParm.isShow_msgid()) {
+                if (pushParams.isShow_phone() && pushParams.isShow_msgid()) {
                      content = (userInfoEntity.getPhone()) + "\t" + (userInfoEntity.getMsgid());
-                } else if (pushParm.isShow_phone()){
+                } else if (pushParams.isShow_phone()){
                     content = userInfoEntity.getPhone();
-                } else if (pushParm.isShow_msgid()){
+                } else if (pushParams.isShow_msgid()){
                     content = userInfoEntity.getMsgid();
                 }
                 if (j != i1 - 1)
@@ -146,24 +150,24 @@ public class PushServiceImpl implements PushService {
         return byteOutArr;
     }
 
-    private List<UserInfoEntity> selectVersion(PushParm pushParm) {
+    private List<UserInfoEntity> selectVersion(PushParams pushParams) {
 
         List<UserInfoEntity> list = new ArrayList<>();
 
-        if (pushParm.isVersion_android()) {
-            if (pushParm.isShow_msgid() && pushParm.isShow_phone())
+        if (pushParams.isVersion_android()) {
+            if (pushParams.isShow_msgid() && pushParams.isShow_phone())
                 list.addAll(pushRepository.queryAndroidPhoneAndMsgid());
-            else if (pushParm.isShow_phone())
+            else if (pushParams.isShow_phone())
                 list.addAll(pushRepository.queryAndroidPhone());
-            else if (pushParm.isShow_msgid())
+            else if (pushParams.isShow_msgid())
                 list.addAll(pushRepository.queryAndroidMsgid());
         }
-        if (pushParm.isVersion_ios()) {
-            if (pushParm.isShow_msgid() && pushParm.isShow_phone())
+        if (pushParams.isVersion_ios()) {
+            if (pushParams.isShow_msgid() && pushParams.isShow_phone())
                 list.addAll(pushRepository.queryIOSPhoneAndMsgid());
-            else if (pushParm.isShow_phone())
+            else if (pushParams.isShow_phone())
                 list.addAll(pushRepository.queryIOSPhone());
-            else if (pushParm.isShow_msgid())
+            else if (pushParams.isShow_msgid())
                 list.addAll(pushRepository.queryIOSMsgid());
         }
 
