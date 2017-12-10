@@ -37,7 +37,7 @@ public class PushServiceImpl implements PushService {
     private final String BASE_NAME;
     private final String BASE_PATH;
     private final String CHINA_MOBILE_NUMBER;
-    private PushRepository pushRepository;
+    private final PushRepository pushRepository;
     private final String ENTER;
     private final int MAX_NUMBER;
 
