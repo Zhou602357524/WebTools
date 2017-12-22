@@ -15,6 +15,15 @@ public class PushParams {
     private boolean show_phone;
     private boolean show_msgid;
     private int splitNumber;
+    private int numberSplit;
+
+    public int getNumberSplit() {
+        return numberSplit;
+    }
+
+    public void setNumberSplit(int numberSplit) {
+        this.numberSplit = numberSplit;
+    }
 
     public boolean isVersion_ios() {
         return version_ios;

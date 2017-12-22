@@ -41,7 +41,7 @@ public class PushController {
 
     @ResponseBody
     @PostMapping("/process")
-    public Object process(
+    public synchronized Object process(
             @RequestParam(name = "sourceData") MultipartFile sourceData,
             HttpServletResponse response,
             PushParams pushParams) {
@@ -68,6 +68,11 @@ public class PushController {
             e.printStackTrace();
         }
         return sb.toString();
+    }
+    @RequestMapping("/truncate")
+    @ResponseBody
+    public void truncate(){
+        pushService.truncate();
     }
 
 }

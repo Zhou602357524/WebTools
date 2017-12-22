@@ -22,8 +22,10 @@
                 alert("文本类型必须是.txt或者.TXT");
                 return;
             }
-            showdiv(str);
-            subimtBtn();
+            //showdiv(str);
+            //subimtBtn();
+            alert("数据处理中,请耐心等待,切勿重复提交");
+            $("#pushFrom").submit();
         }
     }
     //关闭等待窗口
@@ -103,18 +105,18 @@
         }
     }
     function subimtBtn() {
-        var form = $("form[id=abc]");
+        var form = $("form[id=pushFrom]");
         var options = {
             url:'/push/process', //上传文件的路径
             type:'post',
             success:function(data){
                 console.log(data);
-                alert("成功");
+                alert(data.errmsg);
                 closediv();
                 //....       //异步上传成功之后的操作
             },
             error:function (data) {
-                alert('失败');
+                alert(data.errmsg);
                 closediv();
             }
         };
@@ -127,7 +129,7 @@
         <tr>
             <td>源数据:<input id="sourceData" name="sourceData" type="file"/></td>
         </tr>
-        <tr>
+       <!-- <tr>
             <td>分割数量:
                 <select name="splitNumber">
                     <option value="1" selected="selected">1</option>
@@ -141,6 +143,11 @@
                     <option value="9">9</option>
                     <option value="10">10</option>
                 </select>
+            </td>
+        </tr>-->
+        <tr>
+            <td>
+                已数量分割:<input name="numberSplit" id="numberSplit" type="text"/>
             </td>
         </tr>
         <tr>
@@ -156,7 +163,7 @@
             </td>
         </tr>
         <tr>
-            <td><input type="button" value="提交" onclick="doSubmit('表达数据提交                         中 ')"/></td>
+            <td><input type="button" value="提交" onclick="doSubmit('数据处理中 ')"/></td>
         </tr>
     </table>
 </form>

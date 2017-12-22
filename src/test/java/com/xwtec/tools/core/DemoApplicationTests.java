@@ -1,13 +1,17 @@
 package com.xwtec.tools.core;
 
+import com.xwtec.tools.core.entity.UserInfoEntity;
 import com.xwtec.tools.core.repository.PushRepository;
 import com.xwtec.tools.core.service.pushtools.PushService;
+import com.xwtec.tools.core.service.pushtools.impl.PushServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +47,14 @@ public class DemoApplicationTests {
         System.out.println("===========操作系统是:"+System.getProperties().getProperty("os.name"));
 
         //pushService.truncate();
+    }
+    @Test
+    public void write() throws InvocationTargetException, IllegalAccessException {
+        Method[] methods = pushService.getClass().getDeclaredMethods();
+        for (Method method : methods) {
+            if (method.getName().equals("insertPhoneNumbersBySqlLoader"))
+                method.invoke(pushService);
+        }
     }
 
 }

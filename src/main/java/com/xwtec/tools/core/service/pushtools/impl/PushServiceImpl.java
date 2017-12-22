@@ -14,10 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -81,7 +78,7 @@ public class PushServiceImpl implements PushService {
         return pushRepository.selectCount();
     }
 
-    private void truncate() {
+    public void truncate() {
         pushRepository.truncate();
     }
 
@@ -105,10 +102,10 @@ public class PushServiceImpl implements PushService {
                 }
             }
             List<UserInfoEntity> userInfoEntities = new ArrayList<>(strSet);
-            pushRepository.insertPhoneNumbers(userInfoEntities);
+            insertPhoneNumbersBySqlLoader(userInfoEntities);
             userInfoEntities = selectVersion(pushParams);
 
-            ByteArrayOutputStream[] byteOutArr = getByteArrayOutputStreams(pushParams,userInfoEntities);
+            ByteArrayOutputStream[] byteOutArr = getByteArrayOutputStreams(pushParams, userInfoEntities);
 
             zipPath = BASE_PATH + "_" + UUID.randomUUID().toString().replace("-", "") + ".zip";
             zipTools.zipByteOutArr(zipPath, byteOutArr, originalFilename);
@@ -119,34 +116,77 @@ public class PushServiceImpl implements PushService {
         } finally {
             truncate();
         }
-        return new ResultMsg(result.getErrcode(),result.getErrmsg());
+        return new ResultMsg(result.getErrcode(), result.getErrmsg());
+    }
+
+    private void insertPhoneNumbersBySqlLoader(List<UserInfoEntity> entities) {
+        File file = new File("/data/webapp/push_msgid/push_msgid.txt");
+        try
+                (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))) {
+            long beginTime1 = System.currentTimeMillis();
+            System.out.println("write file begin");
+            for (int i = 0; i < entities.size(); i++)
+                writer.write(entities.get(i).getPhone() + ENTER);
+            writer.flush();
+            long endTime1 = System.currentTimeMillis();
+            System.out.println("write file end : write time ="+(endTime1-beginTime1)+ENTER+"sql loader begin");
+            String command="/data/webapp/xw_script/load181.sh";
+            long beginTime2 = System.currentTimeMillis();
+            Process process = Runtime.getRuntime().exec(command);
+            readerProcessAndWait(process);
+
+            long endTime2 = System.currentTimeMillis();
+            System.out.println("sql loader end : process time = "+(endTime2-beginTime2));
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            if (file.exists())
+                file.delete();
+        }
+    }
+
+    private int readerProcessAndWait(Process process) throws InterruptedException, IOException {
+        BufferedReader bufferedReader =new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line=bufferedReader.readLine()) != null) {
+            System.out.println(line);
+        }
+        //读取标准错误流
+        BufferedReader brError = new BufferedReader(new InputStreamReader(process.getErrorStream(), "utf8"));
+        String errline = null;
+        while ((errline = brError.readLine()) != null) {
+            System.out.println(errline);
+        }
+        return process.waitFor();
     }
 
     private ByteArrayOutputStream[] getByteArrayOutputStreams(PushParams pushParams, List<UserInfoEntity> userInfoEntities) throws IOException {
-        int splitNumber = pushParams.getSplitNumber();
-        ByteArrayOutputStream[] byteOutArr = new ByteArrayOutputStream[splitNumber];
-        int size = userInfoEntities.size() / splitNumber;
+        int numberSplit = pushParams.getNumberSplit();
+        int size = userInfoEntities.size() / numberSplit;
+        if (userInfoEntities.size() % numberSplit != 0)
+            size += 1;
+        ByteArrayOutputStream[] byteOutArr = new ByteArrayOutputStream[size];
         int offset = 0;
-        for (int i = 0; i < splitNumber; i++) {
+        for (int i = 0; i < size; i++) {
             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-            int i1 = offset + size;
-            if (i == splitNumber - 1)
+            int i1 = offset + numberSplit;
+            if (i == size - 1)
                 i1 = userInfoEntities.size();
             for (int j = offset; j < i1; j++) {
                 String content = "";
                 UserInfoEntity userInfoEntity = userInfoEntities.get(j);
                 if (pushParams.isShow_phone() && pushParams.isShow_msgid()) {
-                     content = (userInfoEntity.getPhone()) + "\t" + (userInfoEntity.getMsgid());
-                } else if (pushParams.isShow_phone()){
+                    content = (userInfoEntity.getPhone()) + "\t" + (userInfoEntity.getMsgid());
+                } else if (pushParams.isShow_phone()) {
                     content = userInfoEntity.getPhone();
-                } else if (pushParams.isShow_msgid()){
+                } else if (pushParams.isShow_msgid()) {
                     content = userInfoEntity.getMsgid();
                 }
                 if (j != i1 - 1)
                     content = content + ENTER;
                 byteOut.write(content.getBytes());
             }
-            offset += size;
+            offset += numberSplit;
             byteOutArr[i] = byteOut;
         }
         return byteOutArr;
@@ -155,7 +195,7 @@ public class PushServiceImpl implements PushService {
     private List<UserInfoEntity> selectVersion(PushParams pushParams) {
 
         List<UserInfoEntity> list = new ArrayList<>();
-
+        long beginTime = System.currentTimeMillis();
         if (pushParams.isVersion_android()) {
             if (pushParams.isShow_msgid() && pushParams.isShow_phone())
                 list.addAll(pushRepository.queryAndroidPhoneAndMsgid());
@@ -172,7 +212,7 @@ public class PushServiceImpl implements PushService {
             else if (pushParams.isShow_msgid())
                 list.addAll(pushRepository.queryIOSMsgid());
         }
-
+        System.out.println("select version time = " + (System.currentTimeMillis() - beginTime));
         return list;
     }
 
