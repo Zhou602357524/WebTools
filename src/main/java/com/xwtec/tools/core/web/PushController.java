@@ -1,6 +1,7 @@
 package com.xwtec.tools.core.web;
 
 import com.xwtec.tools.core.entity.PushParams;
+import com.xwtec.tools.core.entity.UserInfoEntity;
 import com.xwtec.tools.core.service.pushtools.PushService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -14,6 +15,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -75,4 +81,24 @@ public class PushController {
         pushService.truncate();
     }
 
+    @RequestMapping("/load")
+    @ResponseBody
+    public String load(@RequestParam(name = "sourceData") MultipartFile sourceData) throws IOException {
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(sourceData.getInputStream()));
+        Set<UserInfoEntity> strSet = new HashSet<>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String phone = line.trim();
+            boolean matches = Pattern.matches("^((13[4-9])|(147)|(15[0-2,7-9])|(17[8])|(18[2-4,7-8]))\\d{8}|(170[5])\\d{7}|(198)\\d{8}$", phone);
+            if (matches) {
+                UserInfoEntity userInfoEntity = new UserInfoEntity();
+                userInfoEntity.setPhone(phone);
+                strSet.add(userInfoEntity);
+            }
+        }
+        List<UserInfoEntity> userInfoEntities = new ArrayList<>(strSet);
+        pushService.insertPhoneNumbersBySqlLoader(userInfoEntities);
+        return null;
+    }
 }

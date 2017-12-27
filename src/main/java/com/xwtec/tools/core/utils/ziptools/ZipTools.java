@@ -8,11 +8,9 @@ import java.util.zip.ZipOutputStream;
 public class ZipTools {
     private String baseName;
 
-
     public ZipTools(String baseName) {
         this.baseName = baseName;
     }
-
 
     public void zip(@NotNull String zipFileName,@NotNull String... sourceFileName) throws Exception {
 

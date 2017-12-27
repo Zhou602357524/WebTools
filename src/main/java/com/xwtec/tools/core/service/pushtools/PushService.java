@@ -23,4 +23,7 @@ public interface PushService {
     int getCount();
 
     void truncate();
+
+    void insertPhoneNumbersBySqlLoader(List<UserInfoEntity> entities);
+
 }

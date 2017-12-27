@@ -103,7 +103,7 @@ public class PushServiceImpl implements PushService {
             }
             List<UserInfoEntity> userInfoEntities = new ArrayList<>(strSet);
             insertPhoneNumbersBySqlLoader(userInfoEntities);
-            userInfoEntities = selectVersion(pushParams);
+            selectVersion(pushParams,userInfoEntities);
 
             ByteArrayOutputStream[] byteOutArr = getByteArrayOutputStreams(pushParams, userInfoEntities);
 
@@ -118,8 +118,8 @@ public class PushServiceImpl implements PushService {
         }
         return new ResultMsg(result.getErrcode(), result.getErrmsg());
     }
-
-    private void insertPhoneNumbersBySqlLoader(List<UserInfoEntity> entities) {
+    @Override
+    public void insertPhoneNumbersBySqlLoader(List<UserInfoEntity> entities) {
         File file = new File("/data/webapp/push_msgid/push_msgid.txt");
         try
                 (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))) {
@@ -192,9 +192,9 @@ public class PushServiceImpl implements PushService {
         return byteOutArr;
     }
 
-    private List<UserInfoEntity> selectVersion(PushParams pushParams) {
+    private void selectVersion(PushParams pushParams, List<UserInfoEntity> list) {
 
-        List<UserInfoEntity> list = new ArrayList<>();
+        list.clear();
         long beginTime = System.currentTimeMillis();
         if (pushParams.isVersion_android()) {
             if (pushParams.isShow_msgid() && pushParams.isShow_phone())
@@ -213,7 +213,7 @@ public class PushServiceImpl implements PushService {
                 list.addAll(pushRepository.queryIOSMsgid());
         }
         System.out.println("select version time = " + (System.currentTimeMillis() - beginTime));
-        return list;
+
     }
 
 }

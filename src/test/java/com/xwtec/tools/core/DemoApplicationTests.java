@@ -48,13 +48,6 @@ public class DemoApplicationTests {
 
         //pushService.truncate();
     }
-    @Test
-    public void write() throws InvocationTargetException, IllegalAccessException {
-        Method[] methods = pushService.getClass().getDeclaredMethods();
-        for (Method method : methods) {
-            if (method.getName().equals("insertPhoneNumbersBySqlLoader"))
-                method.invoke(pushService);
-        }
-    }
+
 
 }
