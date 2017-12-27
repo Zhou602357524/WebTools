@@ -213,7 +213,6 @@ public class PushServiceImpl implements PushService {
                 list.addAll(pushRepository.queryIOSMsgid());
         }
         System.out.println("select version time = " + (System.currentTimeMillis() - beginTime));
-
     }
 
 }
