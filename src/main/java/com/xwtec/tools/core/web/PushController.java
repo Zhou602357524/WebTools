@@ -101,4 +101,22 @@ public class PushController {
         pushService.insertPhoneNumbersBySqlLoader(userInfoEntities);
         return null;
     }
+    @RequestMapping("hello")
+    @ResponseBody
+    public Object hello(){
+        hello2();
+        String hello3 = hello3();
+        return "hello";
+    }
+    @RequestMapping("hello3")
+    @ResponseBody
+    public String hello3() {
+
+        return "hello3";
+    }
+
+    private void hello2() {
+        System.out.println("hello2");
+    }
+
 }

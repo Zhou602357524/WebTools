@@ -4,6 +4,7 @@ import com.xwtec.tools.core.entity.UserInfoEntity;
 import com.xwtec.tools.core.repository.PushRepository;
 import com.xwtec.tools.core.service.pushtools.PushService;
 import com.xwtec.tools.core.service.pushtools.impl.PushServiceImpl;
+import com.xwtec.tools.core.web.PushController;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,12 @@ public class DemoApplicationTests {
     private PushRepository pushRepository;
     @Autowired
     private PushService pushService;
+    @Autowired
+    private PushController pushController;
     @Test
     //@Transactional
     public void contextLoads() {
-
+        pushController.hello();
     }
 
     @Test
