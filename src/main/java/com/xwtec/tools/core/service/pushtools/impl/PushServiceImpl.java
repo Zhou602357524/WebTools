@@ -142,7 +142,7 @@ public class PushServiceImpl implements PushService {
             map.put("android",androidTask.join());
         if (IOSTask != null)
             map.put("ios",IOSTask.join());
-        logger.info("selectVersion耗时====" + (System.currentTimeMillis()-startTime));
+        logger.info("selectVersion耗时====" + ((System.currentTimeMillis()-startTime)/1000.0));
         return map;
     }
 
@@ -188,8 +188,7 @@ public class PushServiceImpl implements PushService {
                     list = pushRepository.queryAndroidPhone(begin,end);
                 else if (pushParams.isShow_msgid())
                     list = pushRepository.queryAndroidMsgid(begin,end);
-            }
-            if (version.equals(VersionEnum.IOS)) {
+            }else if (version.equals(VersionEnum.IOS)) {
                 if (pushParams.isShow_msgid() && pushParams.isShow_phone())
                     list = pushRepository.queryIOSPhoneAndMsgid(begin,end);
                 else if (pushParams.isShow_phone())
@@ -197,7 +196,7 @@ public class PushServiceImpl implements PushService {
                 else if (pushParams.isShow_msgid())
                     list = pushRepository.queryIOSMsgid(begin,end);
             }
-            logger.info(Thread.currentThread().getName() + "...耗时=" + (System.currentTimeMillis()-startTime));
+            logger.info(Thread.currentThread().getName() + "...耗时=" + ((System.currentTimeMillis()-startTime)/1000.0));
             return list;
         }
     }
@@ -246,7 +245,6 @@ public class PushServiceImpl implements PushService {
                 logger.info(errorLine);
             }
         }
-
         return process.waitFor();
     }
 
@@ -284,6 +282,4 @@ public class PushServiceImpl implements PushService {
     private enum VersionEnum {
         ANDROID, IOS
     }
-
-
 }
