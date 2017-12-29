@@ -8,6 +8,8 @@ import com.xwtec.tools.core.repository.PushRepository;
 import com.xwtec.tools.core.service.pushtools.PushService;
 import com.xwtec.tools.core.utils.io.IOUtils;
 import com.xwtec.tools.core.utils.ziptools.ZipTools;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
 import java.util.regex.Pattern;
 
 /**
@@ -29,7 +34,7 @@ import java.util.regex.Pattern;
 @Service
 @Transactional
 public class PushServiceImpl implements PushService {
-
+    private final Logger logger;
     private final ZipTools zipTools;
     private final String BASE_NAME;
     private final String BASE_PATH;
@@ -37,6 +42,7 @@ public class PushServiceImpl implements PushService {
     private final PushRepository pushRepository;
     private final String ENTER;
     private final int MAX_NUMBER;
+
 
     @Autowired
     public PushServiceImpl(PushRepository pushRepository) {
@@ -51,6 +57,7 @@ public class PushServiceImpl implements PushService {
             ENTER = "\r\n";
         else
             ENTER = "\n";
+        logger = LoggerFactory.getLogger(this.getClass());
     }
 
     public void insertPhoneNumbers(List<UserInfoEntity> numbers) {
@@ -85,7 +92,6 @@ public class PushServiceImpl implements PushService {
     @Override
     public ResultMsg compressedFiles(MultipartFile sourceData, PushParams pushParams, HttpServletResponse response) {
 
-        String zipPath = null;
         ResultStatusCode result;
         try {
             String originalFilename = sourceData.getOriginalFilename();
@@ -102,12 +108,15 @@ public class PushServiceImpl implements PushService {
                 }
             }
             List<UserInfoEntity> userInfoEntities = new ArrayList<>(strSet);
-            insertPhoneNumbersBySqlLoader(userInfoEntities);
-            selectVersion(pushParams,userInfoEntities);
-
+            insertPhoneNumbersBySqlLoader(strSet);
+            Map<String,List<UserInfoEntity>> map = selectVersion(pushParams,strSet);
+            if (map.get("ios") != null)
+                userInfoEntities.addAll(map.get("ios"));
+            if (map.get("android") != null)
+                userInfoEntities.addAll(map.get("android"));
             ByteArrayOutputStream[] byteOutArr = getByteArrayOutputStreams(pushParams, userInfoEntities);
 
-            zipPath = BASE_PATH + "_" + UUID.randomUUID().toString().replace("-", "") + ".zip";
+            String zipPath = BASE_PATH + "_" + UUID.randomUUID().toString().replace("-", "") + ".zip";
             zipTools.zipByteOutArr(zipPath, byteOutArr, originalFilename);
             result = IOUtils.responseWrite(response, zipPath);
         } catch (IOException e) {
@@ -118,25 +127,99 @@ public class PushServiceImpl implements PushService {
         }
         return new ResultMsg(result.getErrcode(), result.getErrmsg());
     }
+
+    private Map<String,List<UserInfoEntity>> selectVersion(PushParams pushParams, Set<UserInfoEntity> userInfoEntities) {
+        long startTime = System.currentTimeMillis();
+        Map<String,List<UserInfoEntity>> map = new HashMap<>(2);
+        ForkJoinTask<List<UserInfoEntity>> androidTask = null;
+        ForkJoinTask<List<UserInfoEntity>> IOSTask = null;
+        if (pushParams.isVersion_android())
+            androidTask = new PushParallelTask(pushParams, 0, userInfoEntities.size(), VersionEnum.ANDROID, 100000).fork();
+        if (pushParams.isVersion_ios())
+            IOSTask = new PushParallelTask(pushParams, 0, userInfoEntities.size(), VersionEnum.IOS, 100000).fork();
+        userInfoEntities = null;
+        if (androidTask != null)
+            map.put("android",androidTask.join());
+        if (IOSTask != null)
+            map.put("ios",IOSTask.join());
+        logger.info("selectVersion耗时====" + ((System.currentTimeMillis()-startTime)/1000.0));
+        return map;
+    }
+
+    private class PushParallelTask extends RecursiveTask<List<UserInfoEntity>> {
+        private final VersionEnum version;
+        private PushParams pushParams;
+        private int begin;
+        private int end;
+        private final int max;
+
+        private PushParallelTask(PushParams pushParams, int begin, int end, VersionEnum version,int max) {
+            this.pushParams = pushParams;
+            this.begin = begin;
+            this.end = end;
+            this.version = version;
+            this.max = max;
+        }
+
+        @Override
+        protected List<UserInfoEntity> compute() {
+            int total = end - begin;
+            if (total < max){
+                return process();
+            }
+            int average = total / 2;
+            ForkJoinTask<List<UserInfoEntity>> leftTask = new PushParallelTask(pushParams,begin,begin + average,version,max).fork();
+
+            ForkJoinTask<List<UserInfoEntity>> rightTask = new PushParallelTask(pushParams,begin + average, end,version,max).fork();
+
+            List<UserInfoEntity> left = leftTask.join();
+            List<UserInfoEntity> right = rightTask.join();
+            left.addAll(right);
+            return left;
+        }
+
+        List<UserInfoEntity> process(){
+            long startTime = System.currentTimeMillis();
+            List<UserInfoEntity> list = null;
+            if (version.equals(VersionEnum.ANDROID)) {
+                if (pushParams.isShow_msgid() && pushParams.isShow_phone())
+                    list = pushRepository.queryAndroidPhoneAndMsgid(begin,end);
+                else if (pushParams.isShow_phone())
+                    list = pushRepository.queryAndroidPhone(begin,end);
+                else if (pushParams.isShow_msgid())
+                    list = pushRepository.queryAndroidMsgid(begin,end);
+            }else if (version.equals(VersionEnum.IOS)) {
+                if (pushParams.isShow_msgid() && pushParams.isShow_phone())
+                    list = pushRepository.queryIOSPhoneAndMsgid(begin,end);
+                else if (pushParams.isShow_phone())
+                    list = pushRepository.queryIOSPhone(begin,end);
+                else if (pushParams.isShow_msgid())
+                    list = pushRepository.queryIOSMsgid(begin,end);
+            }
+            logger.info(Thread.currentThread().getName() + "...耗时=" + ((System.currentTimeMillis()-startTime)/1000.0));
+            return list;
+        }
+    }
+
     @Override
-    public void insertPhoneNumbersBySqlLoader(List<UserInfoEntity> entities) {
+    public void insertPhoneNumbersBySqlLoader(Set<UserInfoEntity> entities) {
         File file = new File("/data/webapp/push_msgid/push_msgid.txt");
         try
                 (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))) {
-            long beginTime1 = System.currentTimeMillis();
-            System.out.println("write file begin");
-            for (int i = 0; i < entities.size(); i++)
-                writer.write(entities.get(i).getPhone() + ENTER);
+            entities.parallelStream().forEach(e -> {
+                try {
+                    writer.write(e.getPhone() + ENTER);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            });
             writer.flush();
-            long endTime1 = System.currentTimeMillis();
-            System.out.println("write file end : write time ="+(endTime1-beginTime1)+ENTER+"sql loader begin");
             String command="/data/webapp/xw_script/load181.sh";
             long beginTime2 = System.currentTimeMillis();
             Process process = Runtime.getRuntime().exec(command);
             readerProcessAndWait(process);
-
             long endTime2 = System.currentTimeMillis();
-            System.out.println("sql loader end : process time = "+(endTime2-beginTime2));
+            logger.info("sql loader end : process time = "+(endTime2-beginTime2));
         } catch (Exception e){
             e.printStackTrace();
         } finally {
@@ -146,16 +229,21 @@ public class PushServiceImpl implements PushService {
     }
 
     private int readerProcessAndWait(Process process) throws InterruptedException, IOException {
-        BufferedReader bufferedReader =new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line;
-        while ((line=bufferedReader.readLine()) != null) {
-            System.out.println(line);
-        }
-        //读取标准错误流
-        BufferedReader brError = new BufferedReader(new InputStreamReader(process.getErrorStream(), "utf8"));
-        String errline = null;
-        while ((errline = brError.readLine()) != null) {
-            System.out.println(errline);
+        try
+                (
+                BufferedReader bufferedReader =new BufferedReader(new InputStreamReader(process.getInputStream(),"utf8"));
+                BufferedReader brError = new BufferedReader(new InputStreamReader(process.getErrorStream(), "utf8"))
+                )
+        {
+            String line;
+            while ((line=bufferedReader.readLine()) != null) {
+                logger.info(line);
+            }
+            //读取标准错误流
+            String errorLine;
+            while ((errorLine = brError.readLine()) != null) {
+                logger.info(errorLine);
+            }
         }
         return process.waitFor();
     }
@@ -191,28 +279,7 @@ public class PushServiceImpl implements PushService {
         }
         return byteOutArr;
     }
-
-    private void selectVersion(PushParams pushParams, List<UserInfoEntity> list) {
-
-        list.clear();
-        long beginTime = System.currentTimeMillis();
-        if (pushParams.isVersion_android()) {
-            if (pushParams.isShow_msgid() && pushParams.isShow_phone())
-                list.addAll(pushRepository.queryAndroidPhoneAndMsgid());
-            else if (pushParams.isShow_phone())
-                list.addAll(pushRepository.queryAndroidPhone());
-            else if (pushParams.isShow_msgid())
-                list.addAll(pushRepository.queryAndroidMsgid());
-        }
-        if (pushParams.isVersion_ios()) {
-            if (pushParams.isShow_msgid() && pushParams.isShow_phone())
-                list.addAll(pushRepository.queryIOSPhoneAndMsgid());
-            else if (pushParams.isShow_phone())
-                list.addAll(pushRepository.queryIOSPhone());
-            else if (pushParams.isShow_msgid())
-                list.addAll(pushRepository.queryIOSMsgid());
-        }
-        System.out.println("select version time = " + (System.currentTimeMillis() - beginTime));
+    private enum VersionEnum {
+        ANDROID, IOS
     }
-
 }

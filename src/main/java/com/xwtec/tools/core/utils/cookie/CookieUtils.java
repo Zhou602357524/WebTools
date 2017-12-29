@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class CookieUtils {
 
-
     public static String getName(HttpServletRequest request, String cookieName) {
 
         Cookie[] cookies = request.getCookies();
