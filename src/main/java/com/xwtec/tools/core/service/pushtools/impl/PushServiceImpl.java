@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.regex.Pattern;
@@ -43,7 +42,7 @@ public class PushServiceImpl implements PushService {
     private final String ENTER;
     private final int MAX_NUMBER;
 
-
+    @SuppressWarnings("all")
     @Autowired
     public PushServiceImpl(PushRepository pushRepository) {
         this.pushRepository = pushRepository;
@@ -178,25 +177,37 @@ public class PushServiceImpl implements PushService {
             return left;
         }
 
-        List<UserInfoEntity> process(){
+        private List<UserInfoEntity> process(){
             long startTime = System.currentTimeMillis();
             List<UserInfoEntity> list = null;
             if (version.equals(VersionEnum.ANDROID)) {
-                if (pushParams.isShow_msgid() && pushParams.isShow_phone())
-                    list = pushRepository.queryAndroidPhoneAndMsgid(begin,end);
-                else if (pushParams.isShow_phone())
-                    list = pushRepository.queryAndroidPhone(begin,end);
-                else if (pushParams.isShow_msgid())
-                    list = pushRepository.queryAndroidMsgid(begin,end);
+                list = queryAndroid();
             }else if (version.equals(VersionEnum.IOS)) {
-                if (pushParams.isShow_msgid() && pushParams.isShow_phone())
-                    list = pushRepository.queryIOSPhoneAndMsgid(begin,end);
-                else if (pushParams.isShow_phone())
-                    list = pushRepository.queryIOSPhone(begin,end);
-                else if (pushParams.isShow_msgid())
-                    list = pushRepository.queryIOSMsgid(begin,end);
+                list = queryIos();
             }
             logger.info(Thread.currentThread().getName() + "...耗时=" + ((System.currentTimeMillis()-startTime)/1000.0));
+            return list;
+        }
+
+        private List<UserInfoEntity> queryIos() {
+            List<UserInfoEntity> list = null;
+            if (pushParams.isShow_msgid() && pushParams.isShow_phone())
+                list = pushRepository.queryIOSPhoneAndMsgid(begin,end);
+            else if (pushParams.isShow_phone())
+                list = pushRepository.queryIOSPhone(begin,end);
+            else if (pushParams.isShow_msgid())
+                list = pushRepository.queryIOSMsgid(begin,end);
+            return list;
+        }
+
+        private List<UserInfoEntity> queryAndroid(){
+            List<UserInfoEntity> list = null;
+            if (pushParams.isShow_msgid() && pushParams.isShow_phone())
+                list = pushRepository.queryAndroidPhoneAndMsgid(begin,end);
+            else if (pushParams.isShow_phone())
+                list = pushRepository.queryAndroidPhone(begin,end);
+            else if (pushParams.isShow_msgid())
+                list = pushRepository.queryAndroidMsgid(begin,end);
             return list;
         }
     }
@@ -206,13 +217,9 @@ public class PushServiceImpl implements PushService {
         File file = new File("/data/webapp/push_msgid/push_msgid.txt");
         try
                 (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))) {
-            entities.parallelStream().forEach(e -> {
-                try {
-                    writer.write(e.getPhone() + ENTER);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            });
+            StringBuffer sb = new StringBuffer();
+            entities.parallelStream().forEach(e -> sb.append(e.getPhone()).append(ENTER));
+            writer.write(sb.toString());
             writer.flush();
             String command="/data/webapp/xw_script/load181.sh";
             long beginTime2 = System.currentTimeMillis();

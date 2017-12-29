@@ -1,12 +1,7 @@
 package com.xwtec.tools.core;
 
-import com.xwtec.tools.core.entity.PushParams;
-import com.xwtec.tools.core.entity.UserInfoEntity;
-import com.xwtec.tools.core.repository.PushRepository;
-
-import java.util.*;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.RecursiveTask;
 
 public class ForkJoinTest {

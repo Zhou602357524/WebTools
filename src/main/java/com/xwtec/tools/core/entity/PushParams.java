@@ -1,5 +1,8 @@
 package com.xwtec.tools.core.entity;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 /**
  * \* Created with IntelliJ IDEA.
  * \* User: zc
@@ -15,6 +18,8 @@ public class PushParams {
     private boolean show_phone;
     private boolean show_msgid;
     private int splitNumber;
+    @Min(value = 10000,message = "最小值不能小于10000")
+    @NotNull(message = "参数不能为空")
     private int numberSplit;
 
     public int getNumberSplit() {

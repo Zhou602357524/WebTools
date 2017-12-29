@@ -1,22 +1,17 @@
 package com.xwtec.tools.core;
 
-import com.xwtec.tools.core.entity.UserInfoEntity;
 import com.xwtec.tools.core.repository.PushRepository;
 import com.xwtec.tools.core.service.pushtools.PushService;
-import com.xwtec.tools.core.service.pushtools.impl.PushServiceImpl;
 import com.xwtec.tools.core.web.PushController;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.StopWatch;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -29,8 +24,12 @@ public class DemoApplicationTests {
     private PushController pushController;
     @Test
     //@Transactional
-    public void contextLoads() {
-        pushController.hello();
+    public void contextLoads() throws InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        Thread.currentThread().sleep(1000);
+        stopWatch.stop();
+        stopWatch.getTotalTimeSeconds();
     }
 
     @Test
