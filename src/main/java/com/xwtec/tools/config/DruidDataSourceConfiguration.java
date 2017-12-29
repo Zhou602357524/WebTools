@@ -43,7 +43,6 @@ public class DruidDataSourceConfiguration {
      */
     @Bean
     @ConfigurationProperties("spring.datasource.druid")
-
     public com.alibaba.druid.pool.DruidDataSource dataSource(DataSourceProperties properties) {
 
         com.alibaba.druid.pool.DruidDataSource dataSource = createDataSource(

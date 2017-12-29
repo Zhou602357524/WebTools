@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Set;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -24,6 +25,6 @@ public interface PushService {
 
     void truncate();
 
-    void insertPhoneNumbersBySqlLoader(List<UserInfoEntity> entities);
+    void insertPhoneNumbersBySqlLoader(Set<UserInfoEntity> entities);
 
 }

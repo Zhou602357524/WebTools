@@ -1,21 +1,27 @@
 package com.xwtec.tools.core.utils.ziptools;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.validation.constraints.NotNull;
 import java.io.*;
+import java.util.UUID;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ZipTools {
     private String baseName;
-
+    private final Logger logger;
     public ZipTools(String baseName) {
         this.baseName = baseName;
+        logger = LoggerFactory.getLogger(this.getClass());
     }
 
     public void zip(@NotNull String zipFileName,@NotNull String... sourceFileName) throws Exception {
-
+        
         //File zipFile = new File(zipFileName);
-        System.out.println("压缩中...");
+        logger.info("压缩中...");
         //创建zip输出流
         ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFileName)));
 
@@ -27,7 +33,7 @@ public class ZipTools {
                 File[] fileList = sourceFile.listFiles();
                 if (fileList.length == 0)//如果文件夹为空，则只需在目的地zip文件中写入一个目录进入点
                 {
-                    System.out.println("空目录");
+                    logger.info("空目录");
                     out.putNextEntry(new ZipEntry(baseName + "/"));
                 } else {
                     for (int i = 0; i < fileList.length; i++) {
@@ -41,8 +47,7 @@ public class ZipTools {
             }
         }
         out.close();
-        System.out.println("压缩完成");
-
+        logger.info("压缩完成");
     }
 
     public void zipByteOutArr(String zipFileName,ByteArrayOutputStream[] byteOutArr,String baseName){
@@ -52,14 +57,25 @@ public class ZipTools {
                 (ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile))))
         {
             //File zipFile = new File(zipFileName);
-            System.out.println("压缩中...");
+            logger.info("压缩中...");
+            Integer flag = 0;
+            //stream方式操作
+            /*
+            Stream.of(byteOutArr).parallel().forEach(e -> {
+                try {
+                    String uuid = UUID.randomUUID().toString().replace("-", "") + "_";
+                    compress(out,e,this.baseName + "/" + uuid + baseName);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            });*/
             //创建zip输出流
             for (int i = 0; i < byteOutArr.length; i++) {
-                System.out.println("压缩part" + i + " start");
+                logger.info("压缩part" + i + " start");
                 compress(out,byteOutArr[i],this.baseName + "/" + "part" + i + "_" + baseName);
-                System.out.println("压缩part" + i + " end");
+                logger.info("压缩part" + i + " end");
             }
-            System.out.println("压缩完成");
+            logger.info("压缩完成");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,7 +102,7 @@ public class ZipTools {
 
         byte[] buffer = new byte[1024 * 8];
         int len = -1;
-        System.out.println(base);
+        logger.info(base);
         //将源文件写入到zip文件中
         while ((len = bis.read(buffer)) != -1) {
             out.write(buffer, 0, len);
