@@ -129,14 +129,15 @@ public class PushServiceImpl implements PushService {
 
     private Map<String,List<UserInfoEntity>> selectVersion(PushParams pushParams, Set<UserInfoEntity> userInfoEntities) {
         long startTime = System.currentTimeMillis();
+        int size = userInfoEntities.size();
+        userInfoEntities = null;
         Map<String,List<UserInfoEntity>> map = new HashMap<>(2);
         ForkJoinTask<List<UserInfoEntity>> androidTask = null;
         ForkJoinTask<List<UserInfoEntity>> IOSTask = null;
         if (pushParams.isVersion_android())
-            androidTask = new PushParallelTask(pushParams, 0, userInfoEntities.size(), VersionEnum.ANDROID, 100000).fork();
+            androidTask = new PushParallelTask(pushParams, 0,size,VersionEnum.ANDROID, 100000).fork();
         if (pushParams.isVersion_ios())
-            IOSTask = new PushParallelTask(pushParams, 0, userInfoEntities.size(), VersionEnum.IOS, 100000).fork();
-        userInfoEntities = null;
+            IOSTask = new PushParallelTask(pushParams, 0,size,VersionEnum.IOS, 100000).fork();
         if (androidTask != null)
             map.put("android",androidTask.join());
         if (IOSTask != null)
