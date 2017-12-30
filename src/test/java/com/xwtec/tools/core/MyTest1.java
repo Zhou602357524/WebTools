@@ -3,11 +3,10 @@ package com.xwtec.tools.core;
 import org.junit.Test;
 import org.springframework.util.StopWatch;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MyTest1 {
 
@@ -15,9 +14,8 @@ public class MyTest1 {
     @Test
     public void sbTest() {
         try
-                (BufferedWriter out = new BufferedWriter(new FileWriter("E:\\test.txt"))) {
-            //StringBuilder sb = new StringBuilder();
-            StringBuffer sb = new StringBuffer();
+                (Writer out = new BufferedWriter(new FileWriter("E:\\test.txt"))) {
+
             StopWatch timer = new StopWatch();
             long flag = 13000000000L;
             List<Long> list = new LinkedList();
@@ -25,26 +23,13 @@ public class MyTest1 {
                 list.add(++flag);
             }
             timer.start();
-            //list.parallelStream().forEachOrdered(e -> sb.append(e).append("\r\n"));
-            /*list.parallelStream().forEachOrdered(e -> {
-                try {
-                    out.write(e.toString() + "\r\n");
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            });*/
-            for (Long aLong : list) {
-                out.write(aLong.toString() + "\r\n");
-            }
-            out.write(sb.toString());
+            String s = list.stream().map(String::valueOf).collect(Collectors.joining("\r\n"));
+            out.write(s);
             timer.stop();
             System.out.println(timer.getTotalTimeSeconds());
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
-
 
 }

@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -217,10 +218,9 @@ public class PushServiceImpl implements PushService {
     public void insertPhoneNumbersBySqlLoader(Set<UserInfoEntity> entities) {
         File file = new File("/data/webapp/push_msgid/push_msgid.txt");
         try
-                (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))) {
-            StringBuffer sb = new StringBuffer();
-            entities.parallelStream().forEach(e -> sb.append(e.getPhone()).append(ENTER));
-            writer.write(sb.toString());
+                (Writer writer = new BufferedWriter(new FileWriter(file))) {
+            String content = entities.stream().map(UserInfoEntity::getPhone).collect(Collectors.joining("\r\n"));
+            writer.write(content);
             writer.flush();
             String command="/data/webapp/xw_script/load181.sh";
             long beginTime2 = System.currentTimeMillis();
@@ -244,14 +244,14 @@ public class PushServiceImpl implements PushService {
                 )
         {
             String line;
-            while ((line=bufferedReader.readLine()) != null) {
+            while ((line=bufferedReader.readLine()) != null)
                 logger.info(line);
-            }
+
             //读取标准错误流
             String errorLine;
-            while ((errorLine = brError.readLine()) != null) {
+            while ((errorLine = brError.readLine()) != null)
                 logger.info(errorLine);
-            }
+
         }
         return process.waitFor();
     }
