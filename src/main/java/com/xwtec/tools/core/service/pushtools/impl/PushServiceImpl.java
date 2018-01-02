@@ -107,7 +107,7 @@ public class PushServiceImpl implements PushService {
                     strSet.add(userInfoEntity);
                 }
             }
-            List<UserInfoEntity> userInfoEntities = new ArrayList<>(strSet);
+            List<UserInfoEntity> userInfoEntities = new ArrayList<>();
             insertPhoneNumbersBySqlLoader(strSet);
             Map<String,List<UserInfoEntity>> map = selectVersion(pushParams,strSet);
             if (map.get("ios") != null)
