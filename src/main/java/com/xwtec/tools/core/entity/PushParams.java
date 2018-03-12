@@ -12,7 +12,8 @@ import javax.validation.constraints.NotNull;
  * \
  */
 public class PushParams {
-
+    @NotNull(message = "不能为空")
+    private String type;
     private boolean version_ios;
     private boolean version_android;
     private boolean show_phone;
@@ -21,6 +22,16 @@ public class PushParams {
     @Min(value = 10000,message = "最小值不能小于10000")
     @NotNull(message = "参数不能为空")
     private int numberSplit;
+    //0无分隔符,1以,分隔
+    private String separator;
+
+    public String getSeparator() {
+        return separator;
+    }
+
+    public void setSeparator(String separator) {
+        this.separator = separator;
+    }
 
     public int getNumberSplit() {
         return numberSplit;
@@ -68,5 +79,13 @@ public class PushParams {
 
     public void setSplitNumber(int splitNumber) {
         this.splitNumber = splitNumber;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

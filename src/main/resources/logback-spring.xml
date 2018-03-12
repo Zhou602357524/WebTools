@@ -80,7 +80,7 @@
     也是<loger>元素，但是它是根loger。只有一个level属性，应为已经被命名为"root".
     level:用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，不能设置为INHERITED或者同义词NULL。默认是DEBUG。
     -->
-    <root level="debug">
+    <root level="INFO">
         <appender-ref ref="FILE" />
         <appender-ref ref="console" />
     </root>

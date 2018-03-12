@@ -10,7 +10,7 @@
 <script type="text/javascript" src="/jquery/jquery-form.js"></script>
 
 <script type="text/javascript">
-    function doSubmit(str) {
+    function doSubmit() {
         if (confirm("确定提交?")) {
             var file = document.getElementById('sourceData');
             var value = file.value;
@@ -25,7 +25,8 @@
             //showdiv(str);
             //subimtBtn();
             alert("数据处理中,请耐心等待,切勿重复提交");
-            $("#pushFrom").submit();
+            //$("#pushFrom").submit();
+            document.getElementById("pushFrom").submit();
         }
     }
     //关闭等待窗口
@@ -160,6 +161,24 @@
             <td>选择字段:
                 <label><input checked="checked" name="show_phone" type="checkbox" value="true"/>phone </label>
                 <label><input checked="checked" name="show_msgid" type="checkbox" value="true"/>msgid </label>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                文本类型:
+                    <select name="type">
+                        <option selecte="select" value="txt">TXT</option>
+                        <option value="csv">CSV</option>
+                    </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                分隔符:
+                <select name="separator">
+                    <option selecte="select" value="0">无分隔符</option>
+                    <option value="1">,</option>
+                </select>
             </td>
         </tr>
         <tr>

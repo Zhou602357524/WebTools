@@ -6,6 +6,7 @@ import com.xwtec.tools.core.entity.ResultStatusCode;
 import com.xwtec.tools.core.entity.UserInfoEntity;
 import com.xwtec.tools.core.repository.PushRepository;
 import com.xwtec.tools.core.service.pushtools.PushService;
+import com.xwtec.tools.core.utils.file.FileUtil;
 import com.xwtec.tools.core.utils.io.IOUtils;
 import com.xwtec.tools.core.utils.ziptools.ZipTools;
 import org.slf4j.Logger;
@@ -20,7 +21,6 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +38,6 @@ public class PushServiceImpl implements PushService {
     private final ZipTools zipTools;
     private final String BASE_NAME;
     private final String BASE_PATH;
-    private final String CHINA_MOBILE_NUMBER;
     private final PushRepository pushRepository;
     private final String ENTER;
     private final int MAX_NUMBER;
@@ -48,7 +47,6 @@ public class PushServiceImpl implements PushService {
     public PushServiceImpl(PushRepository pushRepository) {
         this.pushRepository = pushRepository;
         BASE_NAME = "push_tool";
-        CHINA_MOBILE_NUMBER = "^((13[4-9])|(147)|(15[0-2,7-9])|(17[8])|(18[2-4,7-8]))\\d{8}|(170[5])\\d{7}|(198)\\d{8}$";
         BASE_PATH = getClass().getResource("/").getPath() + "temp/" + BASE_NAME;
         zipTools = new ZipTools(BASE_NAME);
         String os = System.getProperty("os.name");
@@ -95,25 +93,19 @@ public class PushServiceImpl implements PushService {
         ResultStatusCode result;
         try {
             String originalFilename = sourceData.getOriginalFilename();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(sourceData.getInputStream()));
-            Set<UserInfoEntity> strSet = new HashSet<>();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String phone = line.trim();
-                boolean matches = Pattern.matches(CHINA_MOBILE_NUMBER, phone);
-                if (matches) {
-                    UserInfoEntity userInfoEntity = new UserInfoEntity();
-                    userInfoEntity.setPhone(phone);
-                    strSet.add(userInfoEntity);
-                }
-            }
+            Set<UserInfoEntity> strSet;
+            if (pushParams.getType().equals("csv"))
+                strSet = FileUtil.readCSV(sourceData.getInputStream());
+            else
+                strSet = FileUtil.readTxt(sourceData.getInputStream(),pushParams);
             List<UserInfoEntity> userInfoEntities = new ArrayList<>();
             insertPhoneNumbersBySqlLoader(strSet);
-            Map<String,List<UserInfoEntity>> map = selectVersion(pushParams,strSet);
+            Map<String, List<UserInfoEntity>> map = selectVersion(pushParams, strSet);
             if (map.get("ios") != null)
                 userInfoEntities.addAll(map.get("ios"));
             if (map.get("android") != null)
                 userInfoEntities.addAll(map.get("android"));
+
             ByteArrayOutputStream[] byteOutArr = getByteArrayOutputStreams(pushParams, userInfoEntities);
 
             String zipPath = BASE_PATH + "_" + UUID.randomUUID().toString().replace("-", "") + ".zip";
@@ -128,22 +120,22 @@ public class PushServiceImpl implements PushService {
         return new ResultMsg(result.getErrcode(), result.getErrmsg());
     }
 
-    private Map<String,List<UserInfoEntity>> selectVersion(PushParams pushParams, Set<UserInfoEntity> userInfoEntities) {
+    private Map<String, List<UserInfoEntity>> selectVersion(PushParams pushParams, Set<UserInfoEntity> userInfoEntities) {
         long startTime = System.currentTimeMillis();
         int size = userInfoEntities.size();
         userInfoEntities = null;
-        Map<String,List<UserInfoEntity>> map = new HashMap<>(2);
+        Map<String, List<UserInfoEntity>> map = new HashMap<>(2);
         ForkJoinTask<List<UserInfoEntity>> androidTask = null;
         ForkJoinTask<List<UserInfoEntity>> IOSTask = null;
         if (pushParams.isVersion_android())
-            androidTask = new PushParallelTask(pushParams, 0,size,VersionEnum.ANDROID, 100000).fork();
+            androidTask = new PushParallelTask(pushParams, 0, size, VersionEnum.ANDROID, 100000).fork();
         if (pushParams.isVersion_ios())
-            IOSTask = new PushParallelTask(pushParams, 0,size,VersionEnum.IOS, 100000).fork();
+            IOSTask = new PushParallelTask(pushParams, 0, size, VersionEnum.IOS, 100000).fork();
         if (androidTask != null)
-            map.put("android",androidTask.join());
+            map.put("android", androidTask.join());
         if (IOSTask != null)
-            map.put("ios",IOSTask.join());
-        logger.info("selectVersion耗时====" + ((System.currentTimeMillis()-startTime)/1000.0));
+            map.put("ios", IOSTask.join());
+        logger.info("selectVersion耗时====" + ((System.currentTimeMillis() - startTime) / 1000.0));
         return map;
     }
 
@@ -154,7 +146,7 @@ public class PushServiceImpl implements PushService {
         private int end;
         private final int max;
 
-        private PushParallelTask(PushParams pushParams, int begin, int end, VersionEnum version,int max) {
+        private PushParallelTask(PushParams pushParams, int begin, int end, VersionEnum version, int max) {
             this.pushParams = pushParams;
             this.begin = begin;
             this.end = end;
@@ -165,13 +157,13 @@ public class PushServiceImpl implements PushService {
         @Override
         protected List<UserInfoEntity> compute() {
             int total = end - begin;
-            if (total < max){
+            if (total < max) {
                 return process();
             }
             int average = total / 2;
-            ForkJoinTask<List<UserInfoEntity>> leftTask = new PushParallelTask(pushParams,begin,begin + average,version,max).fork();
+            ForkJoinTask<List<UserInfoEntity>> leftTask = new PushParallelTask(pushParams, begin, begin + average, version, max).fork();
 
-            ForkJoinTask<List<UserInfoEntity>> rightTask = new PushParallelTask(pushParams,begin + average, end,version,max).fork();
+            ForkJoinTask<List<UserInfoEntity>> rightTask = new PushParallelTask(pushParams, begin + average, end, version, max).fork();
 
             List<UserInfoEntity> left = leftTask.join();
             List<UserInfoEntity> right = rightTask.join();
@@ -179,37 +171,37 @@ public class PushServiceImpl implements PushService {
             return left;
         }
 
-        private List<UserInfoEntity> process(){
+        private List<UserInfoEntity> process() {
             long startTime = System.currentTimeMillis();
             List<UserInfoEntity> list = null;
             if (version.equals(VersionEnum.ANDROID)) {
                 list = queryAndroid();
-            }else if (version.equals(VersionEnum.IOS)) {
+            } else if (version.equals(VersionEnum.IOS)) {
                 list = queryIos();
             }
-            logger.info(Thread.currentThread().getName() + "...耗时=" + ((System.currentTimeMillis()-startTime)/1000.0));
+            logger.info(Thread.currentThread().getName() + "...耗时=" + ((System.currentTimeMillis() - startTime) / 1000.0));
             return list;
         }
 
         private List<UserInfoEntity> queryIos() {
             List<UserInfoEntity> list = null;
             if (pushParams.isShow_msgid() && pushParams.isShow_phone())
-                list = pushRepository.queryIOSPhoneAndMsgid(begin,end);
+                list = pushRepository.queryIOSPhoneAndMsgid(begin, end);
             else if (pushParams.isShow_phone())
-                list = pushRepository.queryIOSPhone(begin,end);
+                list = pushRepository.queryIOSPhone(begin, end);
             else if (pushParams.isShow_msgid())
-                list = pushRepository.queryIOSMsgid(begin,end);
+                list = pushRepository.queryIOSMsgid(begin, end);
             return list;
         }
 
-        private List<UserInfoEntity> queryAndroid(){
+        private List<UserInfoEntity> queryAndroid() {
             List<UserInfoEntity> list = null;
             if (pushParams.isShow_msgid() && pushParams.isShow_phone())
-                list = pushRepository.queryAndroidPhoneAndMsgid(begin,end);
+                list = pushRepository.queryAndroidPhoneAndMsgid(begin, end);
             else if (pushParams.isShow_phone())
-                list = pushRepository.queryAndroidPhone(begin,end);
+                list = pushRepository.queryAndroidPhone(begin, end);
             else if (pushParams.isShow_msgid())
-                list = pushRepository.queryAndroidMsgid(begin,end);
+                list = pushRepository.queryAndroidMsgid(begin, end);
             return list;
         }
     }
@@ -222,13 +214,13 @@ public class PushServiceImpl implements PushService {
             String content = entities.stream().map(UserInfoEntity::getPhone).collect(Collectors.joining("\r\n"));
             writer.write(content);
             writer.flush();
-            String command="/data/webapp/xw_script/load181.sh";
+            String command = "/data/webapp/xw_script/load181.sh";
             long beginTime2 = System.currentTimeMillis();
             Process process = Runtime.getRuntime().exec(command);
             readerProcessAndWait(process);
             long endTime2 = System.currentTimeMillis();
-            logger.info("sql loader end : process time = "+(endTime2-beginTime2));
-        } catch (Exception e){
+            logger.info("sql loader end : process time = " + (endTime2 - beginTime2));
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (file.exists())
@@ -239,19 +231,17 @@ public class PushServiceImpl implements PushService {
     private int readerProcessAndWait(Process process) throws InterruptedException, IOException {
         try
                 (
-                BufferedReader bufferedReader =new BufferedReader(new InputStreamReader(process.getInputStream(),"utf8"));
-                BufferedReader brError = new BufferedReader(new InputStreamReader(process.getErrorStream(), "utf8"))
-                )
-        {
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream(), "utf8"));
+                        BufferedReader brError = new BufferedReader(new InputStreamReader(process.getErrorStream(), "utf8"))
+                ) {
             String line;
-            while ((line=bufferedReader.readLine()) != null)
+            while ((line = bufferedReader.readLine()) != null)
                 logger.info(line);
 
             //读取标准错误流
             String errorLine;
             while ((errorLine = brError.readLine()) != null)
                 logger.info(errorLine);
-
         }
         return process.waitFor();
     }
@@ -287,6 +277,7 @@ public class PushServiceImpl implements PushService {
         }
         return byteOutArr;
     }
+
     private enum VersionEnum {
         ANDROID, IOS
     }

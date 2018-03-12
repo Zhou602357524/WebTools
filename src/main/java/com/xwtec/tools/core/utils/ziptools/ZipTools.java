@@ -13,13 +13,14 @@ import java.util.zip.ZipOutputStream;
 public class ZipTools {
     private String baseName;
     private final Logger logger;
+
     public ZipTools(String baseName) {
         this.baseName = baseName;
         logger = LoggerFactory.getLogger(this.getClass());
     }
 
-    public void zip(@NotNull String zipFileName,@NotNull String... sourceFileName) throws Exception {
-        
+    public void zip(@NotNull String zipFileName, @NotNull String... sourceFileName) throws Exception {
+
         //File zipFile = new File(zipFileName);
         logger.info("压缩中...");
         //创建zip输出流
@@ -43,19 +44,20 @@ public class ZipTools {
                     }
                 }
             } else {
-                compress(out, sourceFile,baseName + "/" +  sourceFile.getName());
+                compress(out, sourceFile, baseName + "/" + sourceFile.getName());
             }
         }
         out.close();
         logger.info("压缩完成");
     }
 
-    public void zipByteOutArr(String zipFileName,ByteArrayOutputStream[] byteOutArr,String baseName){
+    public void zipByteOutArr(String zipFileName, ByteArrayOutputStream[] byteOutArr, String baseName) {
         File zipFile = new File(zipFileName);
         checkFileDirectory(zipFile.getParent());
         try
-                (ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile))))
-        {
+                (ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)))) {
+            if (baseName.endsWith(".csv"))
+                baseName = baseName.replace(".csv", ".txt");
             //File zipFile = new File(zipFileName);
             logger.info("压缩中...");
             Integer flag = 0;
@@ -72,7 +74,7 @@ public class ZipTools {
             //创建zip输出流
             for (int i = 0; i < byteOutArr.length; i++) {
                 logger.info("压缩part" + i + " start");
-                compress(out,byteOutArr[i],this.baseName + "/" + "part" + i + "_" + baseName);
+                compress(out, byteOutArr[i], this.baseName + "/" + "part" + i + "_" + baseName);
                 logger.info("压缩part" + i + " end");
             }
             logger.info("压缩完成");
@@ -110,13 +112,13 @@ public class ZipTools {
         bis.close();
     }
 
-    private void compress(ZipOutputStream out,ByteArrayOutputStream byteOut, String base) throws Exception {
-        try  {
+    private void compress(ZipOutputStream out, ByteArrayOutputStream byteOut, String base) throws Exception {
+        try {
             out.putNextEntry(new ZipEntry(base));
 
             out.write(byteOut.toByteArray());
         } finally {
-            if (byteOut != null){
+            if (byteOut != null) {
                 byteOut.close();
                 byteOut = null;
             }
